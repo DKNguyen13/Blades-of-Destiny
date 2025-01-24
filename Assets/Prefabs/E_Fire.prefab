@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 8992342379675778209}
   - component: {fileID: 5337728345219500598}
   - component: {fileID: 5841895420522872954}
+  - component: {fileID: 1395537385819137909}
   m_Layer: 0
   m_Name: E_Fire
   m_TagString: Player
@@ -216,6 +217,7 @@ MonoBehaviour:
   defense: 0
   level: 1
   type: 2
+  status: 0
   state: 0
 --- !u!70 &5841895420522872954
 CapsuleCollider2D:
@@ -252,6 +254,19 @@ CapsuleCollider2D:
   m_Offset: {x: 0.06569463, y: -0.07121599}
   m_Size: {x: 0.8970412, y: 1.7861664}
   m_Direction: 0
+--- !u!114 &1395537385819137909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3292313290931968817}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f154c33d3b75ad4ea89837be6e66d11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ability: 3
 --- !u!1 &3722709805624725129
 GameObject:
   m_ObjectHideFlags: 0

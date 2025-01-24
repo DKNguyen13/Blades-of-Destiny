@@ -1,0 +1,64 @@
+{
+"heroes": [
+    {
+        "name": "E_Water",
+        "level": 1,
+        "element": "Water",
+        "hp": 200,
+        "stamina": 200,
+        "damage": 50,
+        "defense": 50,
+        "criticalDmg": 0,
+        "criticalRate": 0,
+        "ability": "Continous recovery: When hp is below 15%, self-healing ability will be activated (recover 5% hp and stamina each turn until full), health recovery skill increases health by 10%."
+    },
+    {
+    "name": "E_Fire",
+        "level": 1,
+        "element": "Fire",
+        "hp": 180,
+        "stamina": 200,
+        "damage": 100,
+        "defense": 0,
+        "criticalDmg": 15,
+        "criticalRate": 5,
+        "ability": "Rage: When hp is below 10%, all stats of dmg, critical rate increase by 50%."
+    },
+    {
+    "name": "E_Leaf",
+        "level": 1,
+        "element": "Leaf",
+        "hp": 200,
+        "stamina": 200,
+        "damage": 65,
+        "defense": 35,
+        "criticalDmg": 0,
+        "criticalRate": 0,
+        "ability": "Immunity: Immune to harmful statuses (except burn and freeze)."
+    },
+    {
+    "name": "E_Ground",
+        "level": 1,
+        "element": "Ground",
+        "hp": 230,
+        "stamina": 100,
+        "damage": 20,
+        "defense": 100,
+        "criticalDmg": 0,
+        "criticalRate": 0,
+        "ability": "Indomitable: Has a 10% chance to be immune to damage and restore hp equal to the amount of damage dealt by the opponent."
+    },
+    {
+    "name": "E_Wind",
+        "level": 1,
+        "element": "Wind",
+        "hp": 200,
+        "stamina": 200,
+        "damage": 70,
+        "defense": 10,
+        "criticalDmg": 10,
+        "criticalRate": 10,
+        "ability": "N/A"
+    }
+]
+}

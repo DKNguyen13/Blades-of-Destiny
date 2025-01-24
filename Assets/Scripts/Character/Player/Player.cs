@@ -5,6 +5,7 @@ public class Player : CharacterBase
     //Player status
     [Header("Elements")]
     [SerializeField] private TypeElement type = TypeElement.None;
+    [SerializeField] private Status status = Status.None;
     public PlayerState state;
 
     private int playerExperience;

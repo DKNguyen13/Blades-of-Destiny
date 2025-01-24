@@ -3291,11 +3291,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d77e2b46cfbb76489c35a2559db4263, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: []
-  playerPreTMP:
-  - {fileID: 3629375893142965204, guid: d061d058d5789cb4d98560b243824880, type: 3}
-  - {fileID: 3292313290931968817, guid: 49dc818f418da6c43a51cb0485f2e33b, type: 3}
+  playerPrefab:
+  - {fileID: 4524947860434838232, guid: 95572fddc632e4d448a19403eb717e5e, type: 3}
   - {fileID: 8473012457958653666, guid: 60c1ebde12dacd14fb11259dc6b5968f, type: 3}
+  - {fileID: 3292313290931968817, guid: 49dc818f418da6c43a51cb0485f2e33b, type: 3}
   enemyPrefab:
   - {fileID: 5522911707752329252, guid: adfcd5015724f324d92f2ea23549c7e4, type: 3}
   - {fileID: 8473327321572336754, guid: 9c988c98c43cc0c4f9e32b9ff272a3dd, type: 3}
@@ -5325,6 +5324,7 @@ MonoBehaviour:
   defense: 0
   level: 1
   type: 5
+  status: 0
   state: 0
 --- !u!95 &2046373059
 Animator:
@@ -5925,10 +5925,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 292492443047764592, guid: 49dc818f418da6c43a51cb0485f2e33b, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3292313290931968817, guid: 49dc818f418da6c43a51cb0485f2e33b, type: 3}
       propertyPath: m_Name
       value: E_Fire

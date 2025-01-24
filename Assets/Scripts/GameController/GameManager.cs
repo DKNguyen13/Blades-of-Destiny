@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     [Header("GameObject Prefabs")]
     [SerializeField] private List<GameObject> playerPrefab;
-    [SerializeField] private List<GameObject> playerPreTMP;
+    //[SerializeField] private List<GameObject> playerPreTMP;
     [SerializeField] private List<GameObject> enemyPrefab;
 
     // Arrow indicators for each enemy
@@ -72,6 +72,7 @@ public class GameManager : MonoBehaviour
             enemyPrefab = enemyPrefab.GetRange(0, maxCharacter);
             Debug.LogWarning("List has been trimmed to max size: " + maxCharacter);
         }
+        /*
         // Lấy giá trị index từ PlayerPrefs
         int selectedElementIndex = PlayerPrefs.GetInt("SelectedElementIndex", 4); // Mặc định là 0 nếu không có giá trị
         if (selectedElementIndex != 3)
@@ -82,6 +83,7 @@ public class GameManager : MonoBehaviour
         {
             playerPrefab.AddRange(playerPreTMP);
         }
+        */
         Time.timeScale = 1f;
         anotherButton = GetComponent<AnotherButton>();
     }
@@ -125,6 +127,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Lose");
             anotherButton.ShowGameOverPanel();
         }
+        Debug.Log(currentPlayerIndex);
     }
 
     //Attack 
@@ -173,7 +176,9 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerTurn && !isProcess)
         {
+            Debug.Log("p "+currentPlayerIndex);
             isProcess = true;
+            UpdateCurrentPlayerIndex();
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill1;
             plBase.BaseAttack();
@@ -348,7 +353,6 @@ public class GameManager : MonoBehaviour
     //Update current player index
     public void UpdateCurrentPlayerIndex()
     {
-
         if(currentPlayerIndex < players.Count)
         {
             for (int i = 0; i < players.Count; i++)
@@ -374,7 +378,10 @@ public class GameManager : MonoBehaviour
 
             }
         }
-
+        else
+        {
+            currentPlayerIndex = 0;
+        }
     }
 
     // Hàm kết thúc lượt của player
@@ -392,6 +399,7 @@ public class GameManager : MonoBehaviour
             systemBattle.SetActive(true);
             isPlayerTurn = true;
             turnBase += 1;
+            Debug.Log("Turn " + turnBase);
             currentPlayerIndex = 0;
             for(int i = 0; i < players.Count; i++)
             {

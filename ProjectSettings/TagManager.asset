@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - Item
+  - Background
   layers:
   - Default
   - TransparentFX
@@ -45,4 +46,10 @@ TagManager:
     locked: 0
   - name: Health system
     uniqueID: 1511865239
+    locked: 0
+  - name: Background
+    uniqueID: 1315457867
+    locked: 0
+  - name: Map
+    uniqueID: 717361811
     locked: 0
