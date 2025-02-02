@@ -52,7 +52,7 @@ public class SaveSystem : MonoBehaviour
         GameData gameData = Load() ?? new GameData();
         Debug.Log("on click active");
         // Thêm level mới vào danh sách
-        gameData.levelDataGames.Add("1.1");  // Thêm level "1.1" vào danh sách
+        //gameData.levelDataGames.Add("1.1");  // Thêm level "1.1" vào danh sách
 
         // Lưu lại dữ liệu vào file JSON
         Save(gameData);

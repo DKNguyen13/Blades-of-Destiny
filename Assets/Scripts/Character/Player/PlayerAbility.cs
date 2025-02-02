@@ -18,12 +18,6 @@ public class PlayerAbility : MonoBehaviour
         SetAbility();
     }
 
-    //Update
-    private void Update()
-    {
-        
-    }
-
     //Activate abilities
     public void ActivateAbilities()
     {

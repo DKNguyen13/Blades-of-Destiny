@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-
 [System.Serializable]
 public class GameData
 {
-    public List<string> levelDataGames = new List<string>();
+    public string playerName = "DKN";
+    public int experiece = 0;
+    public int currentMap = 0;
+    public int level = 1;
+    public int point = 0;
 }

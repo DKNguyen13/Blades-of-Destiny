@@ -8,16 +8,11 @@ public class Player : CharacterBase
     [SerializeField] private Status status = Status.None;
     public PlayerState state;
 
-    private int playerExperience;
-
     //Animator
     private Animator animator;
 
     //System hp, stamina
-    private GameObject healthSystem;
-    private GameObject hpBox;
-    private GameObject staminaSystem;
-    private GameObject staminaBox;
+    private GameObject healthSystem, hpBox, staminaSystem, staminaBox;
 
     private int originalDefense;
     private Color originalColor;// Lưu màu gốc của thanh HP
@@ -52,54 +47,53 @@ public class Player : CharacterBase
     }
 
     // Constructor hoặc Init riêng cho Player
-    public void InitPlayer(int maxHealth, int stamina, int damage, int defense, int criticalDmg, int criticalRate, int level, int playerExperience)
+    public void InitPlayer(int maxHealth, int stamina, int damage, int defense, int criticalDmg, int criticalRate, int level)
     {
         // Gọi hàm Init từ lớp cha
         Init(maxHealth, stamina , damage, defense, criticalDmg, criticalRate, level);
 
-        this.playerExperience = playerExperience;
     }
 
     //Initialize element stats
     public void InitializeElementStats()
     {
-        //Khởi tạo level 1
-        if (type == TypeElement.Water)
+        Level = PlayerPrefs.GetInt("Hero_Level", 1);
+        if (Level == 1)
         {
-            InitPlayer(200, 200, 50, 50, 0, 0, 1,0);
-        }
-        else if(type == TypeElement.Ground){
-            InitPlayer(230, 100, 20, 100, 0, 0, 1, 0);
-        }
-        else if (type == TypeElement.Fire)
-        {
-            InitPlayer(180, 200, 100, 0, 15, 5, 1, 0);
-        }
-        else if (type == TypeElement.Leaf)
-        {
-            InitPlayer(200, 200, 65, 35, 0, 0, 1, 0);
-        }
-        else if (type == TypeElement.Wind)
-        {
-            InitPlayer(200, 200, 70, 10, 10, 10, 1, 0);
+            //Khởi tạo level 1
+            if (type == TypeElement.Water)
+            {
+                InitPlayer(200, 200, 50, 50, 0, 0, 1);
+            }
+            else if (type == TypeElement.Ground)
+            {
+                InitPlayer(230, 100, 20, 100, 0, 0, 1);
+            }
+            else if (type == TypeElement.Fire)
+            {
+                InitPlayer(180, 200, 100, 0, 15, 5, 1);
+            }
+            else if (type == TypeElement.Leaf)
+            {
+                InitPlayer(200, 200, 65, 35, 0, 0, 1);
+            }
+            else if (type == TypeElement.Wind)
+            {
+                InitPlayer(200, 200, 70, 10, 10, 10, 1);
+            }
         }
         else
         {
-            InitPlayer(150, 150, 50, 50, 50, 50, 0, 0);
+            int maxHealth = PlayerPrefs.GetInt("Hero_HP", 200);
+            int maxStamina = PlayerPrefs.GetInt("Hero_Stamina", 150);
+            int defense = PlayerPrefs.GetInt("Hero_Defense", 50);
+            int damage = PlayerPrefs.GetInt("Hero_Damage", 100);
+            int criticalDmg = PlayerPrefs.GetInt("Hero_CriticalDmg", 1);
+            int criticalRate = PlayerPrefs.GetInt("Hero_CriticalRate", 5);
+            InitPlayer(maxHealth, maxStamina, damage, defense, criticalDmg, criticalRate, Level);
         }
     }
 
-    // level up
-    public void LevelUp(int exp)
-    {
-        playerExperience += exp; // Cộng kinh nghiệm
-        while (playerExperience >= Level * 300)
-        {
-            playerExperience -= Level * 300;
-            Level++;
-            //Hp + damage tăng xử lý sau
-        }
-    }
     
     //Defense
     public void PlayerDefense()
@@ -109,62 +103,15 @@ public class Player : CharacterBase
             Defense = (int)(originalDefense * 1.5f);
             if(Defense > 0)
             {
-                animator.SetTrigger("defense");
+                animator.Play("defense");
             }
             else
             {
-                animator.SetTrigger("takehit");
+                animator.Play("takehit");
             }
         }
-        else
-        {
-            if(Defense > 1)
-            {
-                Defense = Mathf.RoundToInt(originalDefense / 1.5f);
-            }
-            else
-            {
-                Defense = 0;
-            }
-            originalDefense = Defense;
-        }
-    }
 
-    //Base attack
-    public void BaseAttack()
-    {
-        if (state == PlayerState.Skill1)
-        {
-            if (type == TypeElement.Water)
-            {
-                RestoreHealth((int)(MaxHealth * 0.25f));
-            }
-            animator.SetTrigger("skill1");
-        }
-        else if (state == PlayerState.Skill2)
-        {
-            animator.SetTrigger("skill2");
-        }
-        else if (state == PlayerState.Skill3)
-        {
-            animator.SetTrigger("skill3");
-        }
-        else if (state == PlayerState.Skill4)
-        {
-            animator.SetTrigger("specialSkill");
-        }
-        else
-        {
-            base.RestoreStamina((int)(MaxStamina*0.25f));
-            UpdateStaminaBar();
-            animator.SetTrigger("atk1");
-        }
-    }
-
-    public bool TwinBatte()
-    {
-        return true;
-    }
+    }   
 
     //Take dmg
     public override void TakeDmg(int dmg, int criticalDmg, int criticalRate)
@@ -173,7 +120,7 @@ public class Player : CharacterBase
         if (isDead())
         {
             state = PlayerState.Death;
-            animator.SetTrigger("death");
+            animator.Play("death");
             CurrentStamina = 0;
         }
         else if (state == PlayerState.Defense)
@@ -182,17 +129,90 @@ public class Player : CharacterBase
         }
         else
         {
-            animator.SetTrigger("takehit");
+            animator.Play("takehit");
         }
+    }
+
+
+
+    //Use special skill
+    public void UseSkill(int amount)
+    {
+        if (state == PlayerState.Skill1 && CurrentStamina >= amount)
+        {
+            CurrentStamina -= amount;
+            
+            if(type == TypeElement.Water)
+            {
+                if(CurrentHealth <= (int)(MaxHealth * 0.15))
+                {
+                    CurrentHealth += (int)(MaxHealth * 0.4f); //Ability: hp <= 15% restore + 10%
+                }
+                else
+                {
+                    CurrentHealth += (int)(MaxHealth * 0.3f);
+                }
+                if(CurrentHealth > MaxHealth)
+                {
+                    CurrentHealth = MaxHealth;
+                }
+            }
+            animator.Play("skill1");
+        }
+        else if (state == PlayerState.Skill2 && CurrentStamina >= amount)
+        {
+            CurrentStamina -= amount;
+            animator.Play("skill2");
+        }
+        else if (state == PlayerState.Skill3 && CurrentStamina >= amount)
+        {
+            CurrentStamina -= amount;
+            animator.Play("skill3");
+        }
+        else if (state == PlayerState.SpecialSkill && CurrentStamina >= amount)
+        {
+            CurrentStamina -= amount;
+            animator.Play("special_skill");
+        }
+        UpdateStaminaBar();
+    }
+
+    //Check condition use skill
+    public bool CheckConditionStamina(int amount)
+    {
+        return CurrentStamina >= amount;
+    }
+
+    //Base attack
+    public void BaseAttack()
+    {
+        RestoreStamina((int)(MaxStamina * 0.25f));
+        UpdateStaminaBar();
+        animator.Play("basic_attack");
+    }
+
+    public void PlayerAttack()
+    {
+        FindAnyObjectByType<GameManager>()?.PlayerAttack();
+    }
+
+    //Attack and move
+    public void AttackAndMove()
+    {
+        FindAnyObjectByType<GameManager>()?.AttackAndMove();
+    }
+    public void EndSkill()
+    {
+        var gm = FindAnyObjectByType<GameManager>();
+        gm.EndPlayerSkill();
     }
 
     //Stamina bar
     public void UpdateStaminaBar()
     {
-        float staminaPercentage = (float)CurrentStamina/(float)MaxStamina;
+        float staminaPercentage = (float)CurrentStamina / (float)MaxStamina;
         staminaBox.transform.localScale = new Vector3(staminaPercentage, 1f);
     }
-
     //Health bar
     public void UpdateHpBar()
     {
@@ -204,10 +224,6 @@ public class Player : CharacterBase
         {
             // Tạo hiệu ứng Ping Pong màu
             float pingPongValue = Mathf.PingPong(Time.time * 2f, 1f); // Thay đổi tốc độ nhấp nháy bằng cách thay đổi hệ số nhân với Time.time
-            /*
-            Color darkGreen = new Color(0.0f, 0.5f, 0.0f); // RGB(0, 128, 0)
-            Color mysticGreen = new Color(0.1f, 0.3f, 0.2f); // RGB(26, 77, 51)
-            */
             Color barColor = new Color(0.0f, 0.6f, 0.2f); // RGB(0, 153, 51)
             Color pingPongColor = Color.Lerp(barColor, Color.blue, pingPongValue);
             SetColor(pingPongColor); // Áp dụng màu cho thanh HP
@@ -218,21 +234,6 @@ public class Player : CharacterBase
             SetColor(originalColor);
         }
     }
-
-    //Use special skill
-    public void UseSpeciallSkill(int amount, string ani)
-    {
-        if (CurrentStamina >= amount)
-        {
-            CurrentStamina -= amount;
-            animator.SetTrigger(ani);
-        }
-        else
-        {
-            Debug.Log("not enough stamina");
-        }
-    }
-
     //Set color
     public void SetColor(Color color)
     {
@@ -245,6 +246,5 @@ public class Player : CharacterBase
     }
 
     //Getter, Setter
-    public int PlayerExperience { get => playerExperience; set => playerExperience = value;}
     public TypeElement ElementType { get => type; set => type = value; }
 }

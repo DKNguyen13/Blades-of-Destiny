@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Enemy : CharacterBase
 {
-    public enum EnemyType
-    {
-        Monster, Boss
-    }
-
     [Header("Enemy's status")]
     [SerializeField] private int statModifier = 1;
     [SerializeField] private EnemyType enemyType = EnemyType.Monster;
@@ -24,13 +18,8 @@ public class Enemy : CharacterBase
     // Lưu màu gốc của thanh HP
     private Color originalColor;
 
-
     private void Start()
     {
-        Level = Random.Range(startLevel, endLevel + 1);
-        statModifier = enemyType == EnemyType.Monster ? 1 : 10;//1 * statModifier * Level
-        Init(100 * statModifier * Level, 100 * statModifier * Level, 10 * statModifier * Level , 1 * Level, 5 * Level, Level, CriticalRate);
-
         animator = GetComponent<Animator>();
         // Tìm đối tượng Health System và HpBox con
         healthSystem = transform.Find("Health System").gameObject;
@@ -42,15 +31,44 @@ public class Enemy : CharacterBase
         {
             originalColor = hpBoxRenderer.color; // Màu gốc
         }
+        InitStat();
     }
 
-    public override void TakeDmg(int dmg, int criticalDmg, int criticalRate)
+    public void InitStat()
     {
-        base.TakeDmg(dmg, criticalDmg, criticalRate);
-        UpdateHpBar();
+        int lvl = PlayerPrefs.GetInt("lvl", 1);
+        startLevel = PlayerPrefs.GetInt("Hero_Level", 1);
+        statModifier = (enemyType == EnemyType.Monster) ? 100 : 1000;
+        endLevel = (lvl <= 2) ? (startLevel + 2) : (startLevel + 5);
+        Level = Random.Range(startLevel, endLevel + 1);
+        int maxHp = Level * statModifier * 2;
+        int maxSta = maxHp;
+        int dmg = Level * 20;
+        int def = Level * 10;
+        int critDmg = Level * 3;
+        int critRate = Level * 5;
+        Init(maxHp, maxSta, dmg, def, critDmg, critRate, Level);
+    }
+
+    private void Update()
+    {
         if (isDead())
         {
             Die();
+        }
+    }
+
+    public override void TakeDmg(int dmg, int criticalDmg, int criticalRate)
+    { 
+        if (isDead())
+        {
+            Die();
+        }
+        else
+        {
+            base.TakeDmg(dmg, criticalDmg, criticalRate);
+            UpdateHpBar();
+            animator.Play("take_hit");
         }
     }
 
@@ -76,7 +94,7 @@ public class Enemy : CharacterBase
 
     public void BaseAttack()
     {
-        animator.SetTrigger("atk1");
+        animator.Play("base_atk");
     }
 
     public void SetColor(Color color)
@@ -93,17 +111,24 @@ public class Enemy : CharacterBase
     //Die
     public void Die()
     {
-        animator.SetTrigger("death");
-        StartCoroutine(DestroyAfterAnimationDeath());
+        animator.Play("death");
+        //StartCoroutine(DestroyAfterAnimationDeath());
     }
 
+    /*
     IEnumerator DestroyAfterAnimationDeath()
     {
+        yield return null;
         // Đảm bảo animation 'death' đã thực sự bắt đầu
         float deathAnimationLength = animator.GetCurrentAnimatorStateInfo(0).length;
         //Debug.Log(deathAnimationLength + " s");
-        yield return new WaitForSeconds(deathAnimationLength);
+        yield return new WaitForSeconds(deathAnimationLength + 0.3f);
         Destroy(gameObject);
     }
+    */
 
+    public void OnDestroy()
+    {
+        Destroy(gameObject);
+    }
 }

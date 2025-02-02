@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4919222737381444}
   - component: {fileID: 198999705567538108}
   - component: {fileID: 199692057272603790}
+  - component: {fileID: 7866856561798490061}
   m_Layer: 0
   m_Name: Petals Prefab 1
   m_TagString: Untagged
@@ -4716,3 +4717,17 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &7866856561798490061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830688534800398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b656a41c2294f42b85c981e725762f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sortingLayerName: Map
+  sortingOrder: 1

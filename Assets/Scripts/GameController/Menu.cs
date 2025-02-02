@@ -4,67 +4,39 @@ using TMPro;
 using System.IO;
 using System;
 using UnityEngine.SceneManagement;
-using UnityEditor;
 
 public class Menu : MonoBehaviour
 {
     [Header("Menu")]
     //Main panel
     [SerializeField] private Button continue_btn;
-    [SerializeField] private Button exit_btn;
-
+    [SerializeField] private Button exit_btn, close_btn;
     //Choose hero panel
-    [SerializeField] private Button back_btn;
-    [SerializeField] private Button next_btn;
-    [SerializeField] private Button E_Water;
-    [SerializeField] private Button E_Fire;
-    [SerializeField] private Button E_Leaf;
-
-    [SerializeField] private GameObject menuPanel;
-    [SerializeField] private GameObject choseHeroPanel;
-    [SerializeField] private GameObject informationPanel;
-    [SerializeField] private TextMeshProUGUI playerNameText;
-    [SerializeField] private TextMeshProUGUI playerLevelText;
-    [SerializeField] private TextMeshProUGUI playerHpText;
-    [SerializeField] private TextMeshProUGUI playerStaminaText;
-    [SerializeField] private TextMeshProUGUI playerDmgText;
-    [SerializeField] private TextMeshProUGUI playerDefenseText;
-    [SerializeField] private TextMeshProUGUI playerCritcialRateText;
-    [SerializeField] private TextMeshProUGUI playerCritcialDmgText;
-    [SerializeField] private TextMeshProUGUI playerElement;
-    [SerializeField] private TextMeshProUGUI playerAbility;
-
+    [SerializeField] private Button back_btn, next_btn;
+    [SerializeField] private Button E_Water, E_Fire, E_Leaf;
+    [SerializeField] private GameObject menuPanel, choseHeroPanel, informationPanel, inputName;
+    [SerializeField] private TextMeshProUGUI playerNameText, playerLevelText, playerHpText, playerStaminaText, playerDmgText, playerDefenseText, playerCritcialRateText, playerCritcialDmgText, playerElement, playerAbility;
+    [SerializeField] private TMP_InputField inputField;
     //New game
-    [SerializeField] private Button newGame_btn;
-    [SerializeField] private Button yes_btn;
-    [SerializeField] private Button no_btn;
+    [SerializeField] private Button newGame_btn, yes_btn, no_btn,okName_btn;
     [SerializeField] private GameObject newG_pn;
 
     private string[] dataFile;
-    private string filePath;
+    private string filePath, directoryPath;
     private Hero[] heroList;
-    string directoryPath;
     private int tmp = 0;
-
+    private string playerName;
     // Start is called before the first frame update
     void Start()
     {
         directoryPath = Application.persistentDataPath;
         filePath = directoryPath + "/gameDataHeroes.json";
         Debug.Log("Đường dẫn lưu file: " + filePath);
-        newGame_btn.onClick.AddListener(() => BackMenu(false));
-        continue_btn.onClick.AddListener(ContinueGame);
-        back_btn.onClick.AddListener(() => BackMenu(true));
-        next_btn.onClick.AddListener(NextScene);
-        yes_btn.onClick.AddListener(() => YesNoNewGame(true));
-        no_btn.onClick.AddListener(() => YesNoNewGame(false));
-        exit_btn.onClick.AddListener(ExitGame);
-        E_Water.onClick.AddListener(() => OnButtonClicked(0));  // Index 0
-        E_Fire.onClick.AddListener(() => OnButtonClicked(1));   // Index 1
-        E_Leaf.onClick.AddListener(() => OnButtonClicked(2));   // Index 2
+        OnClick();
         informationPanel.SetActive(false);
         choseHeroPanel.SetActive(false);
         LoadHeroes();
+        Time.timeScale = 1f;
     }
     
     //Choose hero
@@ -102,6 +74,7 @@ public class Menu : MonoBehaviour
             choseHeroPanel.SetActive(false);
             informationPanel.SetActive(false);
             newG_pn.SetActive(false);
+            inputName.SetActive(false);
         }
         else
         {
@@ -113,7 +86,7 @@ public class Menu : MonoBehaviour
             else
             {
                 menuPanel.SetActive(false);
-                choseHeroPanel.SetActive(true);
+                inputName.SetActive(true) ;
             }
         }
     }
@@ -128,7 +101,7 @@ public class Menu : MonoBehaviour
         }
         else
         {
-            choseHeroPanel.SetActive(true);
+            inputName.SetActive(true);
         }
     }
 
@@ -136,9 +109,10 @@ public class Menu : MonoBehaviour
     public void NextScene()
     {
         Hero[] hero = { heroList[tmp] };
-        HeroList heroes = new HeroList { heroes = hero };
+        HeroList heroes = new () { heroes = hero };
         string json = JsonUtility.ToJson(heroes,true);
         File.WriteAllText(filePath, json);
+        PlayerPrefs.SetString("playerName",playerName);
         Debug.Log("Hero list saved successfully!");
         SceneManager.LoadScene("HomeScene");
     }
@@ -151,12 +125,19 @@ public class Menu : MonoBehaviour
                 File.Delete(file);
             }
             menuPanel.SetActive(false);
-            choseHeroPanel.SetActive(true);
+            inputName.SetActive(true);
         }
         else //No
         {
             newG_pn.SetActive(false);
         }
+    }
+
+    public void InputName()
+    {
+        playerName = inputField.text;
+        choseHeroPanel.SetActive(true);
+        inputName.SetActive(false);
     }
 
     //Load hero json
@@ -183,6 +164,21 @@ public class Menu : MonoBehaviour
         }
     }
 
+    public void OnClick()
+    {
+        newGame_btn.onClick.AddListener(() => BackMenu(false));
+        continue_btn.onClick.AddListener(ContinueGame);
+        back_btn.onClick.AddListener(() => BackMenu(true));
+        close_btn.onClick.AddListener(() => BackMenu(true));
+        next_btn.onClick.AddListener(NextScene);
+        yes_btn.onClick.AddListener(() => YesNoNewGame(true));
+        no_btn.onClick.AddListener(() => YesNoNewGame(false));
+        exit_btn.onClick.AddListener(ExitGame);
+        E_Water.onClick.AddListener(() => OnButtonClicked(0));  // Index 0
+        E_Fire.onClick.AddListener(() => OnButtonClicked(1));   // Index 1
+        E_Leaf.onClick.AddListener(() => OnButtonClicked(2));   // Index 2
+        okName_btn.onClick.AddListener(InputName);
+    }
 
     //Exit game
     public void ExitGame()
@@ -195,17 +191,4 @@ public class Menu : MonoBehaviour
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }
-
-
-    /*
-private bool ConfirmNewGame()
-{
-    return EditorUtility.DisplayDialog(
-        "New Game",
-        "Are you sure you want to start a new game? This will delete any existing progress.",
-        "Yes",
-        "No"
-    );
-}
-*/
 }

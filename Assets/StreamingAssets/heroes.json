@@ -25,18 +25,6 @@
         "ability": "Rage: When hp is below 10%, all stats of dmg, critical rate increase by 50%."
     },
     {
-    "name": "E_Leaf",
-        "level": 1,
-        "element": "Leaf",
-        "hp": 200,
-        "stamina": 200,
-        "damage": 65,
-        "defense": 35,
-        "criticalDmg": 0,
-        "criticalRate": 0,
-        "ability": "Immunity: Immune to harmful statuses (except burn and freeze)."
-    },
-    {
     "name": "E_Ground",
         "level": 1,
         "element": "Ground",
@@ -47,6 +35,18 @@
         "criticalDmg": 0,
         "criticalRate": 0,
         "ability": "Indomitable: Has a 10% chance to be immune to damage and restore hp equal to the amount of damage dealt by the opponent."
+    },
+    {
+    "name": "E_Leaf",
+        "level": 1,
+        "element": "Leaf",
+        "hp": 200,
+        "stamina": 200,
+        "damage": 65,
+        "defense": 35,
+        "criticalDmg": 0,
+        "criticalRate": 0,
+        "ability": "Immunity: Immune to harmful statuses (except burn and freeze)."
     },
     {
     "name": "E_Wind",

@@ -3,87 +3,65 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.IO;
 
 public class GameManager : MonoBehaviour
 {
 
     [Header("GameObject Prefabs")]
-    [SerializeField] private List<GameObject> playerPrefab;
-    //[SerializeField] private List<GameObject> playerPreTMP;
-    [SerializeField] private List<GameObject> enemyPrefab;
+    private List<GameObject> playerPrefab =  new();
+    private List<GameObject> enemyPrefab = new();
+    [SerializeField] private List<GameObject> playerPreTMP;
+    [SerializeField] private List<GameObject> enemyPreTMP;
+    private List<GameObject> players = new();
+    private List<GameObject> enemies = new();
 
     // Arrow indicators for each enemy
     [Header("Enemy Arrows")]
-    [SerializeField] private List<GameObject> enemyArrows = new List<GameObject>();
+    private List<GameObject> enemyArrows = new();
 
     [Header("Button")]
-    [SerializeField] private Button baseAttack;
-    [SerializeField] private Button skill;
-    [SerializeField] private Button defense;
-    [SerializeField] private Button skill1;
-    [SerializeField] private Button skill2;
-    [SerializeField] private Button skill3;
-    [SerializeField] private Button skill4;
+    private AnotherButton anotherButton;
+    [SerializeField] private Button baseAttack, skill, defense, skill1, skill2, skill3, skill4;
 
     [Header("Player status panel")]
     [SerializeField] private GameObject systemBattle;
-    [SerializeField] private TextMeshProUGUI playerNameText;
-    [SerializeField] private TextMeshProUGUI playerHpText;
-    [SerializeField] private TextMeshProUGUI playerStaminaText;
-    [SerializeField] private TextMeshProUGUI playerDmgText;
-    [SerializeField] private TextMeshProUGUI playerDefenseText;
-    [SerializeField] private TextMeshProUGUI playerLevelText;
+    [SerializeField] private TextMeshProUGUI playerNameText, playerHpText, playerStaminaText, playerDmgText, playerDefenseText, playerLevelText, expTxt;
 
+    private int[] originalDefense;
     //[Header("Spawn Positions")]
-    private Vector3 playerStartPosition = new Vector3(-5f, -2f, 0f); // Bên trái màn hình
-    private Vector3 enemyStartPosition = new Vector3(5f, -2f, 0f);   // Bên phải màn hình
-    private float spacing = 1.5f; // Distance between characters
-    private float spacingCharacterMid = 1.5f;
-    private float waitingTime = 1.25f;
-
-    //List player and enemy
-    private List<GameObject> players = new List<GameObject>();
-    private List<GameObject> enemies = new List<GameObject>();
+    private Vector3 playerStartPosition = new(-5f, -2f, 0f); // Bên trái màn hình
+    private Vector3 enemyStartPosition = new(5f, -2f, 0f);   // Bên phải màn hình
+    private float spacingCharacterMid = 1.5f, waitingTime = 1.25f, spacing = 1.5f;
+    private Vector3 initialPosition, enemyTransform;
+    private GameObject targetEnemy;
 
     // Turn-based settings
-    private int maxCharacter = 3;
-    private int enemySelect;
-    private int playerSelect;
-    private int currentPlayerIndex = 0;
-    private int turnBase = 1;
+    private int enemySelect, playerSelect, currentPlayerIndex = 0, turnBase = 1,selectedLvl;
     private float distance = 2.2f;//Turn based attack
-    private AnotherButton anotherButton;
-    private Vector3 enemyTransform;
-
-    //Check
-    private bool isPlayerTurn = true;
-    private bool isProcess = false;
-
+    private bool isPlayerTurn = true, isProcess = false, hasSaved = false;
+    
     //Awake
     private void Awake()
     {
-        if (playerPrefab.Count > maxCharacter)
-        {
-            playerPrefab = playerPrefab.GetRange(0, maxCharacter);
-            Debug.LogWarning("List has been trimmed to max size: " + maxCharacter);
-        }
-        if (enemyPrefab.Count > maxCharacter)
-        {
-            enemyPrefab = enemyPrefab.GetRange(0, maxCharacter);
-            Debug.LogWarning("List has been trimmed to max size: " + maxCharacter);
-        }
-        /*
         // Lấy giá trị index từ PlayerPrefs
-        int selectedElementIndex = PlayerPrefs.GetInt("SelectedElementIndex", 4); // Mặc định là 0 nếu không có giá trị
-        if (selectedElementIndex != 3)
-        {
-            playerPrefab.Add(playerPreTMP[selectedElementIndex]);
-        }
-        else
-        {
-            playerPrefab.AddRange(playerPreTMP);
-        }
+        selectedLvl = PlayerPrefs.GetInt("lvl", 1); // Mặc định là 1 nếu không có giá trị
+        EnemyPre(selectedLvl);
+        int hero = PlayerPrefs.GetInt("E_hero");
+        playerPrefab.Add(playerPreTMP[hero]);
+        /*
+        playerPrefab.Add(playerPreTMP[1]);
+        playerPrefab.Add(playerPreTMP[2]);
         */
+
+        if (playerPrefab.Count > 3)
+        {
+            playerPrefab = playerPrefab.GetRange(0, 3); Debug.LogWarning("List has been trimmed to max size: " + 3);
+        }
+        if (enemyPrefab.Count > 3)
+        {
+            enemyPrefab = enemyPrefab.GetRange(0, 3); Debug.LogWarning("List has been trimmed to max size: " + 3);
+        }
         Time.timeScale = 1f;
         anotherButton = GetComponent<AnotherButton>();
     }
@@ -107,12 +85,13 @@ public class GameManager : MonoBehaviour
         skill2.onClick.AddListener(Skill2);
         skill3.onClick.AddListener(Skill3);
         skill4.onClick.AddListener(Skill4);
+        StartCoroutine(UpdateStatusAfterFrame());
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!TeamPlayerLose())
+        if (!CheckResults())
         {
             UpdateCurrentPlayerIndex();
             if (CheckEnemise())
@@ -127,36 +106,105 @@ public class GameManager : MonoBehaviour
             Debug.Log("Lose");
             anotherButton.ShowGameOverPanel();
         }
-        Debug.Log(currentPlayerIndex);
+        if (CheckWin())
+        {
+            if (!hasSaved)
+            {
+                hasSaved = true;
+                Save();
+            }
+            anotherButton.ShowWinPanel();  
+        }
     }
 
+
+    //Perform attack
+    public void PerformAttack(GameObject player, GameObject enemy)
+    {
+        if(enemy == null)
+        {
+            return;
+        }
+        Player playerBase = player.GetComponent<Player>();
+        Enemy enemyBase = enemy.GetComponent<Enemy>();
+
+        if (isPlayerTurn)
+        {
+            float multiplier = 1f;
+            if (playerBase.ElementType == TypeElement.Fire)
+            {
+                multiplier = playerBase.state switch
+                {
+                    PlayerState.Skill1 => 1.1f,//Increase 10%
+                    PlayerState.Skill2 => 0.7f,//Decrease 30%
+                    PlayerState.Skill3 => 0.8f,//Decrease 20%
+                    PlayerState.SpecialSkill => 1.5f,//Increase 50%
+                    _ => 1f
+                };
+            }
+            else if (playerBase.ElementType == TypeElement.Water)
+            {
+                multiplier = playerBase.state switch
+                {
+                    PlayerState.Skill2 => 1.1f,//Increase 10%
+                    PlayerState.Skill3 => 1.2f,//Decrease 20%
+                    PlayerState.SpecialSkill => 1.5f,//Increase 50%
+                    _ => 1f
+                };
+            }
+            else
+            {
+                multiplier = playerBase.state switch
+                {
+                    PlayerState.Skill1 => 1.1f,//Increase 10%
+                    PlayerState.Skill2 => 1.15f,//Increase 15%
+                    PlayerState.Skill3 => 1.2f,//Increase 20%
+                    PlayerState.SpecialSkill => 1.5f,//Increase 50%
+                    _ => 1f
+                };
+            }
+            if(playerBase.state == PlayerState.None)
+            {
+                enemyBase.TakeDmg(playerBase.Damage, playerBase.CriticalDmg, playerBase.CriticalRate);//Enemy take damage
+            }
+            else
+            {
+                enemyBase.TakeDmg((int)(playerBase.Damage * multiplier), playerBase.CriticalDmg, playerBase.CriticalRate);//Enemy take damage
+            }
+        }
+        else
+        {           
+            enemyBase.BaseAttack();//Enemy attack
+            playerBase.TakeDmg(enemyBase.Damage, enemyBase.CriticalDmg, enemyBase.CriticalRate);//Player take damage
+        }
+    }
+
+    public void AttackAndMove()
+    {
+        StartCoroutine(WaitAndMoveBack());
+    }
+
+    public void PlayerAttack()
+    {
+        PerformAttack(players[currentPlayerIndex], targetEnemy);
+    }
     //Attack 
     public void Attack()
     {
         if (isPlayerTurn && !isProcess)
         {
             isProcess = true;
-            StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex],0));// Chạy coroutine để di chuyển và tấn công player hiện tại
+            Player plBase = players[currentPlayerIndex].GetComponent<Player>();
+            plBase.state = PlayerState.BaseAttack;
+            Debug.Log("Base attack");
+            StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));// Chạy coroutine để di chuyển và tấn công player hiện tại
         }
-    }
-
-    public GameObject E_Leaf()
-    {
-        foreach( var player in players )
-        {
-            Player plB = player.GetComponent<Player>();
-            if(plB.ElementType == TypeElement.Leaf)
-            {
-                return player;
-            }
-        }
-        return null;
     }
 
     //Defense
     public void Defense()
     {
-        if(isPlayerTurn && !isProcess)
+        if (isPlayerTurn && !isProcess)
         {
             isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
@@ -176,37 +224,28 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerTurn && !isProcess)
         {
-            Debug.Log("p "+currentPlayerIndex);
-            isProcess = true;
-            UpdateCurrentPlayerIndex();
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill1;
-            plBase.BaseAttack();
-            StartCoroutine(ExecuteSkill(plBase));
-        }
-    }
+            //int amount = (int)(plBase.MaxStamina * 0.2f);
+            int amount = 0;
+            if (plBase.CheckConditionStamina(amount))
+            {
+                isProcess = true;
+                if (plBase.ElementType != TypeElement.Water && plBase.ElementType != TypeElement.Leaf)
+                {
+                    StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
+                }
+                else
+                {
 
-    private IEnumerator ExecuteSkill(Player plBase)
-    {
-        int x = 1;
-        if (plBase.ElementType == TypeElement.Water)
-        {
-            x = 4;
-            currentPlayerIndex++;
+                }
+                plBase.UseSkill(amount);
+            }
+            else
+            {
+
+            }
         }
-        else if (plBase.ElementType == TypeElement.Leaf)
-        {
-            E_Leaf_Arrow arrow_E = players[currentPlayerIndex].GetComponent<E_Leaf_Arrow>();
-            arrow_E.EnemyPosition = enemyTransform;
-            x = 4;
-            PerformAttack(players[currentPlayerIndex], enemies[enemySelect]);
-            currentPlayerIndex++;
-        }
-        else
-        {
-            yield return StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex], 1)); // Chờ MoveAndAttackSinglePlayer hoàn thành
-        }
-        yield return StartCoroutine(EndSkill(x)); // Chờ EndSkill sau khi các bước trên hoàn tất
     }
 
     //Skill 2
@@ -217,12 +256,16 @@ public class GameManager : MonoBehaviour
             isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill2;
-            plBase.BaseAttack();
-            StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex],2));// Chạy coroutine để di chuyển và tấn công player hiện tại
-            StartCoroutine(EndSkill(2));
+            int amount = 0;
+            if (plBase.CheckConditionStamina(amount))
+            {
+                isProcess = true;
+                StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
+                plBase.UseSkill(amount);
+            }
         }
     }
-    
+
     //Skill 3
     public void Skill3()
     {
@@ -231,12 +274,16 @@ public class GameManager : MonoBehaviour
             isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill3;
-            plBase.BaseAttack();
-            StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex], 3));// Chạy coroutine để di chuyển và tấn công player hiện tại
-            StartCoroutine(EndSkill(3));
+            int amount = 0;
+            if (plBase.CheckConditionStamina(amount))
+            {
+                isProcess = true;
+                StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
+                plBase.UseSkill(amount);
+            }
         }
     }
-    
+
     //Skill 4
     public void Skill4()
     {
@@ -244,90 +291,23 @@ public class GameManager : MonoBehaviour
         {
             isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
-            plBase.state = PlayerState.Skill4;
-            plBase.BaseAttack();
-            StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex], 4));// Chạy coroutine để di chuyển và tấn công player hiện tại
-            StartCoroutine(EndSkill(4));
+            plBase.state = PlayerState.SpecialSkill;
+            int amount = 0;
+            if (plBase.CheckConditionStamina(amount))
+            {
+                isProcess = true;
+                StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
+                plBase.UseSkill(amount);
+            }
         }
     }
 
     //End skill
-    IEnumerator EndSkill(int x)
+    public void EndPlayerSkill()
     {
-        float tmp = waitingTime;
-        if(x == 4)
-        {
-            yield return new WaitForSeconds(1f);
-        }
-        else if(x == 1)
-        {
-            tmp -= 0.5f;
-        }
-        anotherButton.CloseSkillPanel();
-        yield return new WaitForSeconds(tmp);
-        isProcess = false;
-        if (currentPlayerIndex >= players.Count) { currentPlayerIndex = 0; PlayerTurn(false); }
+        StartCoroutine(EndSkill());
     }
 
-    //Perform attack
-    public void PerformAttack(GameObject player, GameObject enemy)
-    {
-        Player playerBase = player.GetComponent<Player>();
-        Enemy enemyBase = enemy.GetComponent<Enemy>();
-
-        if (isPlayerTurn)
-        {
-            float multiplier = playerBase.state switch
-            {
-                PlayerState.Skill1 => 1.1f,//Increase 10%
-                PlayerState.Skill2 => 1.2f,//Increase 20%
-                PlayerState.Skill3 => 1.3f,//Increase 30%
-                PlayerState.Skill4 => 1.4f,//Increase 40%
-                _ => 1f
-            };
-            playerBase.BaseAttack();//Player attack
-            if(playerBase.state == PlayerState.None)
-            {
-                enemyBase.TakeDmg(playerBase.Damage, playerBase.CriticalDmg, playerBase.CriticalRate);//Enemy take damage
-            }
-            else
-            {
-                enemyBase.TakeDmg((int)(playerBase.Damage * multiplier), playerBase.CriticalDmg, playerBase.CriticalRate);//Enemy take damage
-            }
-        }
-        else
-        {           
-            enemyBase.BaseAttack();//Enemy attack
-            playerBase.TakeDmg(enemyBase.Damage, enemyBase.CriticalDmg, enemyBase.CriticalRate);//Player take damage
-        }
-    }
-
-    // Coroutine để xử lý di chuyển và tấn công của một player
-    private IEnumerator MoveAndAttackSinglePlayer(GameObject player, int skill)
-    {
-        Vector3 initialPosition = player.transform.position;        // Lưu vị trí ban đầu của player
-        GameObject targetEnemy = enemies[enemySelect];  // Chọn enemy được chỉ định     
-        player.transform.position = targetEnemy.transform.position + new Vector3(-distance, 0.2f, 0);// Dịch chuyển Player tới Enemy
-        PerformAttack(player, targetEnemy);// Thực hiện tấn công
-        float tmp = skill switch
-        {
-            1 => 0.35f,//Skill 1: +0.35f
-            2 => 0.65f,//Skill 2: +0.6f
-            3 => 0.8f,//Skill 3: +0.8f
-            4 => 0.85f,//Skill 4: +0.85f
-            _ => 0f
-        };
-        yield return new WaitForSeconds(waitingTime + tmp);// Đợi một chút trước khi quay lại vị trí ban đầu
-        player.transform.position = initialPosition;    // Quay lại vị trí ban đầu
-        currentPlayerIndex++;    // Chuyển sang player tiếp theo
-        isProcess = false;  // Kết thúc tiến trình
-
-        if(currentPlayerIndex >= players.Count)
-        {
-            Debug.Log("Hết lượt của Player. Đến lượt Enemy.");
-            PlayerTurn(false);
-        }
-    }
 
     //Player Status panel
     public void PlayerStatusPanel()
@@ -363,12 +343,12 @@ public class GameManager : MonoBehaviour
                     if (currentPlayerIndex < players.Count)
                     {
                         currentPlayerIndex++;
+                        break;
                     }
                     else
                     {
                         currentPlayerIndex = 0;
-                        Debug.Log("Lose");
-                        anotherButton.ShowGameOverPanel();
+                        EndSkill();
                     }
                 }
                 else
@@ -384,63 +364,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Hàm kết thúc lượt của player
+    // Player Turn
     private void PlayerTurn(bool turn)
     {
-        if(!turn)
-        {
-            systemBattle.SetActive(false);
-            isPlayerTurn = false;
-            currentPlayerIndex = 0; // Reset lượt tấn công của player
-            StartCoroutine(EnemyTurnSequence());
-        }
-        else
+        if (turn)
         {
             systemBattle.SetActive(true);
             isPlayerTurn = true;
             turnBase += 1;
             Debug.Log("Turn " + turnBase);
             currentPlayerIndex = 0;
-            for(int i = 0; i < players.Count; i++)
+            for (int i = 0; i < players.Count; i++)
             {
                 Player pBase = players[i].GetComponent<Player>();
                 if (pBase.state != PlayerState.None && pBase.state != PlayerState.Death)
                 {
+                    if(pBase.state == PlayerState.Defense)
+                    {
+                        if (pBase.Defense > 1)
+                        {
+                            pBase.Defense = Mathf.RoundToInt(originalDefense[i] / 1.5f);
+                        }
+                        else
+                        {
+                            pBase.Defense = 0;
+                        }
+                        originalDefense[i] = pBase.Defense;
+                    }
                     pBase.state = PlayerState.None;
-                    pBase.PlayerDefense();
                 }
             }
         }
-    }
-
-    // Coroutine để xử lý lượt của các enemy lần lượt
-    private IEnumerator EnemyTurnSequence()
-    {
-        yield return new WaitForSeconds(0.7f);
-        for (int i = 0; i < enemies.Count; i++)
+        else
         {
-            yield return new WaitForSeconds(0.5f);
-            // Xử lý lượt của enemy
-            yield return StartCoroutine(EnemyTurn(enemies[i]));
-
-        }
-        yield return new WaitForSeconds(1f);
-        Debug.Log("Lượt của Enemy kết thúc.");
-        PlayerTurn(true);
-    }
-
-    //Enemy turn
-    private IEnumerator EnemyTurn(GameObject enemy)
-    {
-        Vector3 initialPos = enemy.transform.position;
-        GameObject attackedPlayer = GetLowestPlayerHp();
-
-        if (attackedPlayer != null)
-        {
-            enemy.transform.position = attackedPlayer.transform.position + new Vector3(distance, 0, 0);
-            PerformAttack(attackedPlayer, enemy);
-            yield return new WaitForSeconds(waitingTime);
-            enemy.transform.position = initialPos;
+            systemBattle.SetActive(false);
+            isPlayerTurn = false;
+            currentPlayerIndex = 0; // Reset lượt tấn công của player
+            StartCoroutine(EnemyTurnSequence());
         }
     }
 
@@ -478,12 +438,6 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    //Check win
-    public bool TeamPlayerLose()
-    {
-        if(enemies.Count == 0) return false;
-        return players.TrueForAll(player => player.GetComponent<Player>().state == PlayerState.Death);
-    }
 
     //Spawn character
     public void SpawnCharacters(List<GameObject> prefabs, List<GameObject> characterList, Vector3 startPosition, bool isPlayerTeam)
@@ -578,8 +532,50 @@ public class GameManager : MonoBehaviour
         }
 
     }
+    public void EnemyPre(int x)
+    {
+        if (x == 1)
+        {
+            int tmp = Random.Range(0, 3);
+            enemyPrefab.Add(enemyPreTMP[tmp]);
+        }
+        else if(x == 2)
+        {
+            int quantityEnemy = Random.Range(1, 3);
+            for (int i = 0; i< quantityEnemy; i++)
+            {
+                int tmp = Random.Range(0, 3);
+                enemyPrefab.Add(enemyPreTMP[tmp]);
+            }
+            
+        }        
+        else if(x == 3)
+        {
+            int quantityEnemy = Random.Range(2, 4);
+            for (int i = 0; i< quantityEnemy; i++)
+            {
+                int tmp = Random.Range(0, 3);
+                enemyPrefab.Add(enemyPreTMP[tmp]);
+            }
+            
+        }
+    }
 
-    //Find arrow
+
+    //Arrow hero
+    public GameObject E_Leaf()
+    {
+        foreach (var player in players)
+        {
+            Player plB = player.GetComponent<Player>();
+            if (plB.ElementType == TypeElement.Leaf)
+            {
+                return player;
+            }
+        }
+        return null;
+    }
+    //Find, show, hide selected enemy arrow
     public void FindArrow()
     {
         //Select the target enemy to attack
@@ -604,8 +600,6 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
-    //Show Arrow
     public void ShowArrow(int enemyIndex)
     {
         HideAllArrows();
@@ -614,12 +608,10 @@ public class GameManager : MonoBehaviour
         {
             enemySelect = enemyIndex;
             enemyArrows[enemyIndex].SetActive(true);
-            enemyTransform = enemies[enemyIndex].transform.position + new Vector3(-0.95f, 0.2f, 0); ;
+            enemyTransform = enemies[enemyIndex].transform.position + new Vector3(-0.95f, 0.2f, 0);
 
         }
     }
-
-    //Hide all arrow
     public void HideAllArrows()
     {
         // Ẩn tất cả các mũi tên
@@ -631,5 +623,159 @@ public class GameManager : MonoBehaviour
             }
         }
 
+    }
+
+
+
+    //Check win or lose
+    public bool CheckResults()
+    {
+        return players.TrueForAll(player => player.GetComponent<Player>().state == PlayerState.Death);
+    }
+    public bool CheckWin()
+    {
+        if (enemies.Count == 0) return true;
+        else return false;
+    }
+    public int ExpReward(int playerLevel)
+    {
+        int baseExp = ExpToLevelUp(playerLevel) / 8;
+
+        // EXP ngẫu nhiên trong khoảng 80% - 120% của baseExp
+        int minExp = (int)(baseExp * 0.8f);
+        int maxExp = (int)(baseExp * 1.2f);
+
+        return Random.Range(minExp, maxExp);
+    }
+    public int ExpToLevelUp(int playerLevel)
+    {
+        return (int)(100 * Mathf.Pow(playerLevel,1.5f));//Sử dụng hàm lưu thừa y = a^n
+    }
+
+    //Save data
+    public void Save()
+    {
+        string filePath = Application.persistentDataPath + "/gameData.json";
+        string jsonWrite;
+        GameData gameData;
+        if (!File.Exists(filePath))
+        {
+            gameData = new GameData();
+            string json = JsonUtility.ToJson(gameData, true);
+            File.WriteAllText(filePath, json);
+        }
+        else
+        {
+            string json = File.ReadAllText(filePath);
+            gameData = JsonUtility.FromJson<GameData>(json);
+        }
+        if (selectedLvl > gameData.currentMap)
+        {
+            gameData.currentMap = selectedLvl;
+        }
+        int expUp = ExpToLevelUp(gameData.level);
+        int expRewadStage = ExpReward(gameData.level);
+        gameData.experiece += expRewadStage;
+
+        if (gameData.experiece >= expUp)
+        {
+            gameData.experiece -= expUp;
+            gameData.level++;
+            gameData.point += 3;
+            expTxt.text = "Level: "+gameData.level+ " (Level Up)" + " \nExp: " + gameData.experiece + " / " + expUp + " (+ " + expRewadStage + " exp)";
+        }
+        else
+        {
+            expTxt.text = "Level: " + gameData.level + " \nExp: " + gameData.experiece + " / " + expUp + " (+ " + expRewadStage + " exp)";
+        }
+        jsonWrite = JsonUtility.ToJson(gameData, true);
+        File.WriteAllText(filePath, jsonWrite);
+    }
+
+
+
+    //IEmurator
+    IEnumerator UpdateStatusAfterFrame()
+    {
+        yield return null; // Chờ 1 frame
+        PlayerStatusPanel(); // Cập nhật UI sau khi dữ liệu đã sẵn sàng
+        originalDefense = new int[players.Count];
+        for (int i = 0; i < players.Count; i++)
+        {
+            originalDefense[i] = players[i].GetComponent<Player>().Defense;
+        }
+    }
+
+    // Coroutine để xử lý lượt của các enemy lần lượt
+    private IEnumerator EnemyTurnSequence()
+    {
+        yield return new WaitForSeconds(0.7f);
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            yield return new WaitForSeconds(0.5f);
+            // Xử lý lượt của enemy
+            yield return StartCoroutine(EnemyTurn(enemies[i]));
+
+        }
+        yield return new WaitForSeconds(1f);
+        Debug.Log("Lượt của Enemy kết thúc.");
+        PlayerTurn(true);
+    }
+
+    //Enemy turn
+    private IEnumerator EnemyTurn(GameObject enemy)
+    {
+        Vector3 initialPos = enemy.transform.position;
+        GameObject attackedPlayer = GetLowestPlayerHp();
+
+        if (attackedPlayer != null)
+        {
+            enemy.transform.position = attackedPlayer.transform.position + new Vector3(distance, 0, 0);
+            PerformAttack(attackedPlayer, enemy);
+            yield return new WaitForSeconds(waitingTime);
+            enemy.transform.position = initialPos;
+        }
+    }
+    public IEnumerator WaitAndMoveBack()
+    {
+        yield return new WaitForSeconds(0.5f);
+        anotherButton.CloseSkillPanel();
+        players[currentPlayerIndex].transform.position = initialPosition;
+        currentPlayerIndex++;    // Chuyển sang player tiếp theo
+        isProcess = false;  // Kết thúc tiến trình
+        if (currentPlayerIndex >= players.Count)
+        {
+            Debug.Log("Hết lượt của Player. Đến lượt Enemy.");
+            PlayerTurn(false);
+        }
+    }
+
+    // Attack system (tele attack)
+    private IEnumerator MoveAndAttackSinglePlayer(GameObject player)
+    {
+        initialPosition = player.transform.position;        // Lưu vị trí ban đầu của player
+        targetEnemy = enemies[enemySelect];  // Chọn enemy được chỉ định     
+        player.transform.position = targetEnemy.transform.position + new Vector3(-distance, 0.2f, 0);// Dịch chuyển Player tới Enemy
+
+        // Thực hiện tấn công
+        yield return null;
+
+        Player pl = player.GetComponent<Player>();
+        if (pl.state == PlayerState.BaseAttack)
+        {
+            pl.BaseAttack();
+        }
+    }
+    IEnumerator EndSkill()
+    {
+        yield return new WaitForSeconds(0.3f);
+        anotherButton.CloseSkillPanel();
+        isProcess = false;
+        currentPlayerIndex++;
+        if (currentPlayerIndex >= players.Count)
+        {
+            Debug.Log("Hết lượt của Player. Đến lượt Enemy.");
+            PlayerTurn(false);
+        }
     }
 }
