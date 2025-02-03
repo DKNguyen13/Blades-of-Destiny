@@ -41,7 +41,7 @@ public class Home : MonoBehaviour
 
     public void BackMenu()
     {
-        SceneManager.LoadScene("MenuScene");
+        SceneManager.LoadScene("StartScene");
     }    
 
     public IEnumerator BattleScene()
@@ -51,8 +51,7 @@ public class Home : MonoBehaviour
         battlePanel.SetActive(true);
         AnimatorClipInfo[] clipInfo = battlePanelAnimator.GetCurrentAnimatorClipInfo(0);
         float animationDuration = clipInfo[0].clip.length;
-
-        yield return new WaitForSeconds(animationDuration + 0.2f);
+        yield return new WaitForSeconds(animationDuration + 0.3f);
         exitBtl_btn.gameObject.SetActive(true);
         mapEnemyPanel.SetActive(true);
     }
@@ -126,7 +125,7 @@ public class Home : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("MenuScene");
+            SceneManager.LoadScene("StartScene");
             return;
         }
     }
@@ -260,7 +259,7 @@ public class Home : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("MenuScene");
+            SceneManager.LoadScene("StartScene");
             return;
         }
     }

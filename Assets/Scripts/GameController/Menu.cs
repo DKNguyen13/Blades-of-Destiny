@@ -21,7 +21,7 @@ public class Menu : MonoBehaviour
     [SerializeField] private Button newGame_btn, yes_btn, no_btn,okName_btn;
     [SerializeField] private GameObject newG_pn;
 
-    private string[] dataFile;
+    //private string[] dataFile;
     private string filePath, directoryPath;
     private Hero[] heroList;
     private int tmp = 0;
@@ -78,8 +78,7 @@ public class Menu : MonoBehaviour
         }
         else
         {
-            dataFile = Directory.GetFiles(directoryPath);
-            if(dataFile.Length > 0)
+            if(File.Exists(filePath))
             {
                 newG_pn.SetActive(true);
             }
@@ -94,8 +93,7 @@ public class Menu : MonoBehaviour
     //Continue game
     public void ContinueGame()
     {
-        dataFile = Directory.GetFiles(directoryPath);
-        if(dataFile.Length > 0)
+        if(File.Exists(filePath))
         {
             SceneManager.LoadScene("HomeScene");
         }
@@ -120,9 +118,22 @@ public class Menu : MonoBehaviour
     {
         if (x)  //Yes
         {
-            foreach (string file in dataFile)
+            //dataFile = Directory.GetFiles(directoryPath);//Xóa full file
+            PlayerPrefs.DeleteAll();
+            string filePath1 = directoryPath + "/gameData.json";
+            try
             {
-                File.Delete(file);
+                if(File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+                if (File.Exists(filePath1)){
+                    File.Delete(filePath1);
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.LogException(ex);
             }
             menuPanel.SetActive(false);
             inputName.SetActive(true);

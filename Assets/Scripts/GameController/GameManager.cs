@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.IO;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
     [Header("Button")]
     private AnotherButton anotherButton;
     [SerializeField] private Button baseAttack, skill, defense, skill1, skill2, skill3, skill4;
+    [SerializeField] private GameObject[] bG;
 
     [Header("Player status panel")]
     [SerializeField] private GameObject systemBattle;
@@ -49,10 +51,6 @@ public class GameManager : MonoBehaviour
         EnemyPre(selectedLvl);
         int hero = PlayerPrefs.GetInt("E_hero");
         playerPrefab.Add(playerPreTMP[hero]);
-        /*
-        playerPrefab.Add(playerPreTMP[1]);
-        playerPrefab.Add(playerPreTMP[2]);
-        */
 
         if (playerPrefab.Count > 3)
         {
@@ -534,6 +532,7 @@ public class GameManager : MonoBehaviour
     }
     public void EnemyPre(int x)
     {
+        bG[Random.Range(0, bG.Length)].SetActive(true);
         if (x == 1)
         {
             int tmp = Random.Range(0, 3);
@@ -542,22 +541,144 @@ public class GameManager : MonoBehaviour
         else if(x == 2)
         {
             int quantityEnemy = Random.Range(1, 3);
-            for (int i = 0; i< quantityEnemy; i++)
+            for (int i = 0; i < quantityEnemy; i++)
             {
                 int tmp = Random.Range(0, 3);
                 enemyPrefab.Add(enemyPreTMP[tmp]);
             }
-            
-        }        
+        }
         else if(x == 3)
         {
             int quantityEnemy = Random.Range(2, 4);
-            for (int i = 0; i< quantityEnemy; i++)
+            for (int i = 0; i < quantityEnemy; i++)
             {
                 int tmp = Random.Range(0, 3);
                 enemyPrefab.Add(enemyPreTMP[tmp]);
             }
-            
+        }        
+        else if(x == 4)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[3]);
+                }
+                else
+                {
+                    int tmp = Random.Range(0, 3);
+                    enemyPrefab.Add(enemyPreTMP[tmp]);
+                }
+            }
+
+        }
+        else if (x == 5)
+        {
+            int quantityEnemy = Random.Range(2, 4);
+            for (int i = 0; i < quantityEnemy; i++)
+            {
+                int tmp = Random.Range(4, 6);
+                enemyPrefab.Add(enemyPreTMP[tmp]);
+            }
+        }
+        else if(x == 6)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[6]);
+                }
+                else
+                {
+                    int tmp = Random.Range(4, 6);
+                    enemyPrefab.Add(enemyPreTMP[tmp]);
+                }
+            }
+        }
+        else if(x == 7)
+        {
+            int quantityEnemy = Random.Range(2, 4);
+            for (int i = 0; i < quantityEnemy; i++)
+            {
+                enemyPrefab.Add(enemyPreTMP[7]);
+            }
+        }
+        else if(x == 8)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[8]);
+                }
+                else
+                {
+                    enemyPrefab.Add(enemyPreTMP[7]);
+                }
+            }
+        }
+        else if(x == 9)
+        {
+            int quantityEnemy = Random.Range(1, 4);
+            for (int i = 0; i < quantityEnemy; i++)
+            {
+                enemyPrefab.Add(enemyPreTMP[9]);
+            }
+        }
+        else if(x == 10)
+        {
+            int quantityEnemy = Random.Range(2, 4);
+            for (int i = 0; i < quantityEnemy; i++)
+            {
+                int tmp = Random.Range(9, 11);
+                enemyPrefab.Add(enemyPreTMP[tmp]);
+            }
+        }
+        else if(x == 11)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[11]);
+                }
+                else
+                {
+                    int tmp = Random.Range(9, 11);
+                    enemyPrefab.Add(enemyPreTMP[tmp]);
+                }
+            }
+        }
+        else if (x == 12)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[12]);
+                }
+                else
+                {
+                    int tmp = Random.Range(0, 12);
+                    enemyPrefab.Add(enemyPreTMP[tmp]);
+                }
+            }
+        }
+        else if (x == 13)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 1)
+                {
+                    enemyPrefab.Add(enemyPreTMP[13]);
+                }
+                else
+                {
+                    int tmp = Random.Range(0, 13);
+                    enemyPrefab.Add(enemyPreTMP[tmp]);
+                }
+            }
         }
     }
 
@@ -609,7 +730,6 @@ public class GameManager : MonoBehaviour
             enemySelect = enemyIndex;
             enemyArrows[enemyIndex].SetActive(true);
             enemyTransform = enemies[enemyIndex].transform.position + new Vector3(-0.95f, 0.2f, 0);
-
         }
     }
     public void HideAllArrows()

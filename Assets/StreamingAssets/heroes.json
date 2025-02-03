@@ -30,8 +30,8 @@
         "element": "Ground",
         "hp": 230,
         "stamina": 100,
-        "damage": 20,
-        "defense": 100,
+        "damage": 40,
+        "defense": 80,
         "criticalDmg": 0,
         "criticalRate": 0,
         "ability": "Indomitable: Has a 10% chance to be immune to damage and restore hp equal to the amount of damage dealt by the opponent."

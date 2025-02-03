@@ -67,7 +67,7 @@ public class Player : CharacterBase
             }
             else if (type == TypeElement.Ground)
             {
-                InitPlayer(230, 100, 20, 100, 0, 0, 1);
+                InitPlayer(230, 100, 40, 80, 0, 0, 1);
             }
             else if (type == TypeElement.Fire)
             {

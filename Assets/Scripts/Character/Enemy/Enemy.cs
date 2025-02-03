@@ -41,10 +41,10 @@ public class Enemy : CharacterBase
         statModifier = (enemyType == EnemyType.Monster) ? 100 : 1000;
         endLevel = (lvl <= 2) ? (startLevel + 2) : (startLevel + 5);
         Level = Random.Range(startLevel, endLevel + 1);
-        int maxHp = Level * statModifier * 2;
+        int maxHp = (int)(Level * statModifier *1.4f);
         int maxSta = maxHp;
         int dmg = Level * 20;
-        int def = Level * 10;
+        int def = Level * 5;
         int critDmg = Level * 3;
         int critRate = Level * 5;
         Init(maxHp, maxSta, dmg, def, critDmg, critRate, Level);

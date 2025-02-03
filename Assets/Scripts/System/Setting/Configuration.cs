@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Configuration : MonoBehaviour
 {
@@ -9,7 +7,7 @@ public class Configuration : MonoBehaviour
     {
         #if !UNITY_ANDROID && !UNITY_IOS
                 // Nếu không phải Android hoặc iOS, đặt độ phân giải
-                Screen.SetResolution(1180, 720, false);
+                Screen.SetResolution(1220, 720, false);
         #else
                 Screen.fullScreen = true;
         #endif
