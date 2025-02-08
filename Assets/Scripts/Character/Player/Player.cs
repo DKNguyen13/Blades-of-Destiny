@@ -5,8 +5,10 @@ public class Player : CharacterBase
     //Player status
     [Header("Elements")]
     [SerializeField] private TypeElement type = TypeElement.None;
+    [SerializeField] private PlayerAbilities ability = PlayerAbilities.None;
     [SerializeField] private Status status = Status.None;
     public PlayerState state;
+    private AudioSource au;
 
     //Animator
     private Animator animator;
@@ -19,7 +21,11 @@ public class Player : CharacterBase
 
     private void Start()
     {
-        
+        au = GetComponent<AudioSource>();
+        if(au == null)
+        {
+            au = gameObject.AddComponent<AudioSource>();
+        }
         animator = GetComponent<Animator>();//Animator
         InitializeElementStats();//Init player
         originalDefense = Defense; //Store original defense
@@ -113,27 +119,62 @@ public class Player : CharacterBase
 
     }   
 
+    public void SoundEffect(AudioClip a)
+    {
+        au.PlayOneShot(a);
+    }
+
     //Take dmg
     public override void TakeDmg(int dmg, int criticalDmg, int criticalRate)
     {
+        int current = CurrentHealth;
         base.TakeDmg(dmg, criticalDmg, criticalRate);
-        if (isDead())
+        if (ability == PlayerAbilities.Indomitable && Random.value <= 0.1f)
         {
-            state = PlayerState.Death;
-            animator.Play("death");
-            CurrentStamina = 0;
+            CurrentHealth = current + (current - CurrentHealth);
+            animator.Play("defense");
+            if (CurrentHealth > MaxHealth)
+            {
+                CurrentHealth = MaxHealth;
+            }
         }
-        else if (state == PlayerState.Defense)
+        else if(ability == PlayerAbilities.Rage && CurrentHealth <= (int)(MaxHealth * 0.1f))
         {
-            PlayerDefense();
+            CriticalRate += (int)(CriticalRate * 0.5f);
+            Damage += (int)(Damage * 0.5f);
+            if (isDead())
+            {
+                state = PlayerState.Death;
+                animator.Play("death");
+                CurrentStamina = 0;
+            }
+            else if (state == PlayerState.Defense)
+            {
+                PlayerDefense();
+            }
+            else
+            {
+                animator.Play("takehit");
+            }
         }
         else
         {
-            animator.Play("takehit");
+            if (isDead())
+            {
+                state = PlayerState.Death;
+                animator.Play("death");
+                CurrentStamina = 0;
+            }
+            else if (state == PlayerState.Defense)
+            {
+                PlayerDefense();
+            }
+            else
+            {
+                animator.Play("takehit");
+            }
         }
     }
-
-
 
     //Use special skill
     public void UseSkill(int amount)
@@ -142,7 +183,7 @@ public class Player : CharacterBase
         {
             CurrentStamina -= amount;
             
-            if(type == TypeElement.Water)
+            if(ability == PlayerAbilities.ContinousRecovery)
             {
                 if(CurrentHealth <= (int)(MaxHealth * 0.15))
                 {
@@ -186,7 +227,7 @@ public class Player : CharacterBase
     //Base attack
     public void BaseAttack()
     {
-        RestoreStamina((int)(MaxStamina * 0.25f));
+        RestoreStamina((int)(MaxStamina * 0.2f));
         UpdateStaminaBar();
         animator.Play("basic_attack");
     }
@@ -247,4 +288,5 @@ public class Player : CharacterBase
 
     //Getter, Setter
     public TypeElement ElementType { get => type; set => type = value; }
+    public PlayerAbilities Ability { get => ability; set => ability = value; }
 }

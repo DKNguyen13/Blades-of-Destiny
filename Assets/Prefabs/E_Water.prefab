@@ -179,9 +179,8 @@ GameObject:
   - component: {fileID: 326595883666599368}
   - component: {fileID: 3415548464720131885}
   - component: {fileID: 4494975649167316384}
-  - component: {fileID: 7345621750887775276}
   - component: {fileID: 7948736904927031968}
-  - component: {fileID: 288558796036818024}
+  - component: {fileID: 7345621750887775276}
   m_Layer: 0
   m_Name: E_Water
   m_TagString: Player
@@ -278,31 +277,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &7345621750887775276
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4524947860434838232}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: deecd165142b60f409e8b2c5435cdc3d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nameCharacter: Elemental Water
-  currentHealth: 0
-  maxHealth: 100
-  currentStamina: 0
-  maxStamina: 100
-  damage: 0
-  criticalDmg: 0
-  criticalRate: 0
-  defense: 0
-  level: 1
-  type: 1
-  status: 0
-  state: 0
 --- !u!70 &7948736904927031968
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -338,7 +312,7 @@ CapsuleCollider2D:
   m_Offset: {x: 0.09386349, y: -0.1448183}
   m_Size: {x: 0.80772686, y: 1.5103633}
   m_Direction: 0
---- !u!114 &288558796036818024
+--- !u!114 &7345621750887775276
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -347,10 +321,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 4524947860434838232}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f154c33d3b75ad4ea89837be6e66d11, type: 3}
+  m_Script: {fileID: 11500000, guid: deecd165142b60f409e8b2c5435cdc3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nameCharacter: Elemental Water
+  currentHealth: 0
+  maxHealth: 100
+  currentStamina: 0
+  maxStamina: 100
+  damage: 0
+  criticalDmg: 0
+  criticalRate: 0
+  defense: 0
+  level: 1
+  type: 1
   ability: 1
+  status: 0
+  state: 0
 --- !u!1 &4565185117571826389
 GameObject:
   m_ObjectHideFlags: 0

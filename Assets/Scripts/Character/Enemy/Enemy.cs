@@ -38,12 +38,12 @@ public class Enemy : CharacterBase
     {
         int lvl = PlayerPrefs.GetInt("lvl", 1);
         startLevel = PlayerPrefs.GetInt("Hero_Level", 1);
-        statModifier = (enemyType == EnemyType.Monster) ? 100 : 1000;
-        endLevel = (lvl <= 2) ? (startLevel + 2) : (startLevel + 5);
+        statModifier = (enemyType == EnemyType.Monster) ? 10 : 100;
+        endLevel = (lvl <= 2) ? (startLevel + 3) : (startLevel + 5);
         Level = Random.Range(startLevel, endLevel + 1);
-        int maxHp = (int)(Level * statModifier *1.4f);
+        int maxHp = Level * statModifier * 20;
         int maxSta = maxHp;
-        int dmg = Level * 20;
+        int dmg = Level * statModifier * 2;
         int def = Level * 5;
         int critDmg = Level * 3;
         int critRate = Level * 5;
@@ -112,7 +112,6 @@ public class Enemy : CharacterBase
     public void Die()
     {
         animator.Play("death");
-        //StartCoroutine(DestroyAfterAnimationDeath());
     }
 
     /*

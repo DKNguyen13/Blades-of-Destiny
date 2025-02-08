@@ -12,7 +12,7 @@ public class SaveSystem : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        filePath = Application.persistentDataPath + "/gameData.json";
+        filePath = Path.Combine(Application.persistentDataPath, "gameData.json");
         Debug.Log("Đường dẫn lưu file: " + filePath);  // Xem đường dẫn file
         saveButton.onClick.AddListener(OnSaveButtonClicked);  // Đăng ký sự kiện cho nút
         saveButton1.onClick.AddListener(OnSaveButtonClicked1);  // Đăng ký sự kiện cho nút

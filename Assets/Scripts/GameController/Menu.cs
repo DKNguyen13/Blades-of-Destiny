@@ -4,6 +4,8 @@ using TMPro;
 using System.IO;
 using System;
 using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
+using System.Collections;
 
 public class Menu : MonoBehaviour
 {
@@ -30,7 +32,7 @@ public class Menu : MonoBehaviour
     void Start()
     {
         directoryPath = Application.persistentDataPath;
-        filePath = directoryPath + "/gameDataHeroes.json";
+        filePath = Path.Combine(directoryPath, "gameDataHeroes.json");
         Debug.Log("Đường dẫn lưu file: " + filePath);
         OnClick();
         informationPanel.SetActive(false);
@@ -62,6 +64,27 @@ public class Menu : MonoBehaviour
         catch(Exception ex)
         {
             Debug.LogException(ex);
+        }
+    }
+
+    IEnumerator LoadHeroesAndroid()
+    {
+        string filePath = Path.Combine(Application.streamingAssetsPath, "heroes.json");
+
+        using (UnityWebRequest request = UnityWebRequest.Get(filePath))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string json = request.downloadHandler.text;
+                HeroList heroListWrapper = JsonUtility.FromJson<HeroList>(json);
+                heroList = heroListWrapper.heroes;
+            }
+            else
+            {
+                Debug.LogError("Lỗi tải file JSON trên Android: " + request.error);
+            }
         }
     }
 
@@ -120,7 +143,8 @@ public class Menu : MonoBehaviour
         {
             //dataFile = Directory.GetFiles(directoryPath);//Xóa full file
             PlayerPrefs.DeleteAll();
-            string filePath1 = directoryPath + "/gameData.json";
+            PlayerPrefs.Save();
+            string filePath1 = Path.Combine(Application.persistentDataPath, "gameData.json");
             try
             {
                 if(File.Exists(filePath))
@@ -154,12 +178,10 @@ public class Menu : MonoBehaviour
     //Load hero json
     public void LoadHeroes()
     {
+#if UNITY_ANDROID
+    StartCoroutine(LoadHeroesAndroid());
+#else
         string filePath = Path.Combine(Application.streamingAssetsPath,"heroes.json");
-        /*
-        filePath = filePath.Replace("\\", "/");
-        Debug.Log("File path: " + filePath);
-        Debug.Log("StreamingAssets directory exists: " + Directory.Exists(Application.streamingAssetsPath));
-        */
         if (File.Exists(filePath))
         {
             string json = File.ReadAllText(filePath);
@@ -173,6 +195,7 @@ public class Menu : MonoBehaviour
         {
             Debug.LogError("Heroes JSON file not found!");
         }
+#endif
     }
 
     public void OnClick()

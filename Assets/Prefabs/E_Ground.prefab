@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2827293971408447677}
   - component: {fileID: 349861428504974123}
   - component: {fileID: 6151480124361329154}
-  - component: {fileID: 1499626038090828630}
   m_Layer: 0
   m_Name: E_Ground
   m_TagString: Player
@@ -168,21 +167,9 @@ MonoBehaviour:
   defense: 0
   level: 1
   type: 4
+  ability: 4
   status: 0
   state: 0
---- !u!114 &1499626038090828630
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 430621497353462218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f154c33d3b75ad4ea89837be6e66d11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ability: 4
 --- !u!1 &623291669442532770
 GameObject:
   m_ObjectHideFlags: 0

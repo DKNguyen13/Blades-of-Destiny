@@ -44,16 +44,11 @@ public class Home : MonoBehaviour
         SceneManager.LoadScene("StartScene");
     }    
 
-    public IEnumerator BattleScene()
+    public void BattleScene()
     {
         PlayerSound(sumer);
         menuPanel.SetActive(false);
         battlePanel.SetActive(true);
-        AnimatorClipInfo[] clipInfo = battlePanelAnimator.GetCurrentAnimatorClipInfo(0);
-        float animationDuration = clipInfo[0].clip.length;
-        yield return new WaitForSeconds(animationDuration + 0.3f);
-        exitBtl_btn.gameObject.SetActive(true);
-        mapEnemyPanel.SetActive(true);
     }
 
     public IEnumerator CloseBattleMap()
@@ -102,7 +97,7 @@ public class Home : MonoBehaviour
 
     public void LoadHeroData()
     {
-        string filePath = Application.persistentDataPath + "/gameDataHeroes.json";
+        string filePath = Path.Combine(Application.persistentDataPath, "gameDataHeroes.json");
         if (File.Exists(filePath))
         {
             string json = File.ReadAllText(filePath);
@@ -133,7 +128,7 @@ public class Home : MonoBehaviour
     //Load gameData.json
     public GameData LoadData()
     {
-        string filePath = Application.persistentDataPath + "/gameData.json";
+        string filePath = Path.Combine(Application.persistentDataPath,"gameData.json");
         if (File.Exists(filePath))
         {
             //Load game data
@@ -172,7 +167,7 @@ public class Home : MonoBehaviour
     public void OnClick()
     {
         mainmenu_btn.onClick.AddListener(BackMenu);
-        battle_btn.onClick.AddListener(() => StartCoroutine(BattleScene()));
+        battle_btn.onClick.AddListener(BattleScene);
         exitBtl_btn.onClick.AddListener(() => StartCoroutine(CloseBattleMap()));
         closeHero_btn.onClick.AddListener(() => HeroPanel(false));
         hero_btn.onClick.AddListener(() => HeroPanel(true));
@@ -236,8 +231,8 @@ public class Home : MonoBehaviour
     //Save data
     public void SaveData()
     {
-        string filePath1 = Application.persistentDataPath + "/gameDataHeroes.json";
-        string filePath2 = Application.persistentDataPath + "/gameData.json";
+        string filePath1 = Path.Combine(Application.persistentDataPath, "gameDataHeroes.json");
+        string filePath2 = Path.Combine(Application.persistentDataPath, "gameData.json");
         if (File.Exists(filePath1) && File.Exists(filePath2))
         {
             gameData.point = point;

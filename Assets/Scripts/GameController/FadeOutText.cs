@@ -35,6 +35,7 @@ public class FadeOutText : MonoBehaviour
 
     public void ShowMessage(string message)
     {
+        messageText.gameObject.SetActive(true);
         messageText.text = message;
         messageText.canvasRenderer.SetAlpha(1f);
         timer = displayTime;

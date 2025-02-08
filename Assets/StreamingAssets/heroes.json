@@ -10,7 +10,7 @@
         "defense": 50,
         "criticalDmg": 0,
         "criticalRate": 0,
-        "ability": "Continous recovery: When hp is below 15%, self-healing ability will be activated (recover 5% hp and stamina each turn until full), health recovery skill increases health by 10%."
+        "ability": "Continous recovery: When hp is below 15%, self-healing ability will be activated (recover 10% hp and stamina each turn until full), health recovery skill increases health by 10%."
     },
     {
     "name": "E_Fire",

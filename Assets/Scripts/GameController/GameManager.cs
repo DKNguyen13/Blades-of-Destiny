@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.IO;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class GameManager : MonoBehaviour
 {
@@ -41,8 +40,8 @@ public class GameManager : MonoBehaviour
     // Turn-based settings
     private int enemySelect, playerSelect, currentPlayerIndex = 0, turnBase = 1,selectedLvl;
     private float distance = 2.2f;//Turn based attack
-    private bool isPlayerTurn = true, isProcess = false, hasSaved = false;
-    
+    private bool isPlayerTurn = true, isProcess = false, hasSaved = false, activeRecovery = false;
+
     //Awake
     private void Awake()
     {
@@ -133,7 +132,7 @@ public class GameManager : MonoBehaviour
             {
                 multiplier = playerBase.state switch
                 {
-                    PlayerState.Skill1 => 1.1f,//Increase 10%
+                    PlayerState.Skill1 => 1.2f,//Increase 20%
                     PlayerState.Skill2 => 0.7f,//Decrease 30%
                     PlayerState.Skill3 => 0.8f,//Decrease 20%
                     PlayerState.SpecialSkill => 1.5f,//Increase 50%
@@ -144,9 +143,20 @@ public class GameManager : MonoBehaviour
             {
                 multiplier = playerBase.state switch
                 {
-                    PlayerState.Skill2 => 1.1f,//Increase 10%
-                    PlayerState.Skill3 => 1.2f,//Decrease 20%
-                    PlayerState.SpecialSkill => 1.5f,//Increase 50%
+                    PlayerState.Skill2 => 1.3f,//Increase 30%
+                    PlayerState.Skill3 => 1.4f,//INcrease 40%
+                    PlayerState.SpecialSkill => 1.6f,//Increase 60%
+                    _ => 1f
+                };
+            }
+            else if (playerBase.ElementType == TypeElement.Ground)
+            {
+                multiplier = playerBase.state switch
+                {
+                    PlayerState.Skill1 => 1.1f, //Increase 20%
+                    PlayerState.Skill2 => 1.2f,//Increase 25%
+                    PlayerState.Skill3 => 1.3f,//Increase 30%
+                    PlayerState.SpecialSkill => 1.5f,//Increase 60%
                     _ => 1f
                 };
             }
@@ -154,10 +164,10 @@ public class GameManager : MonoBehaviour
             {
                 multiplier = playerBase.state switch
                 {
-                    PlayerState.Skill1 => 1.1f,//Increase 10%
+                    PlayerState.Skill1 => 1.2f,//Increase 20%
                     PlayerState.Skill2 => 1.15f,//Increase 15%
                     PlayerState.Skill3 => 1.2f,//Increase 20%
-                    PlayerState.SpecialSkill => 1.5f,//Increase 50%
+                    PlayerState.SpecialSkill => 1.6f,//Increase 60%
                     _ => 1f
                 };
             }
@@ -225,23 +235,19 @@ public class GameManager : MonoBehaviour
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill1;
             //int amount = (int)(plBase.MaxStamina * 0.2f);
-            int amount = 0;
+            int amount = 50;
             if (plBase.CheckConditionStamina(amount))
             {
                 isProcess = true;
-                if (plBase.ElementType != TypeElement.Water && plBase.ElementType != TypeElement.Leaf)
+                if (plBase.ElementType != TypeElement.Water)
                 {
                     StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
-                }
-                else
-                {
-
                 }
                 plBase.UseSkill(amount);
             }
             else
             {
-
+                FindAnyObjectByType<FadeOutText>().ShowMessage("Not enough stamina to use the skill (50).");
             }
         }
     }
@@ -251,15 +257,19 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerTurn && !isProcess)
         {
-            isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill2;
-            int amount = 0;
+            //int amount = (int)(plBase.MaxStamina * 0.5f);
+            int amount = 100;
             if (plBase.CheckConditionStamina(amount))
             {
                 isProcess = true;
                 StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
                 plBase.UseSkill(amount);
+            }
+            else
+            {
+                FindAnyObjectByType<FadeOutText>().ShowMessage("Not enough stamina to use the skill (100).");
             }
         }
     }
@@ -269,15 +279,19 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerTurn && !isProcess)
         {
-            isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.Skill3;
-            int amount = 0;
+            //int amount = (int)(plBase.MaxStamina * 0.7f);
+            int amount = 150;
             if (plBase.CheckConditionStamina(amount))
             {
                 isProcess = true;
                 StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
                 plBase.UseSkill(amount);
+            }
+            else
+            {
+                FindAnyObjectByType<FadeOutText>().ShowMessage("Not enough stamina to use the skill (150).");
             }
         }
     }
@@ -287,15 +301,18 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerTurn && !isProcess)
         {
-            isProcess = true;
             Player plBase = players[currentPlayerIndex].GetComponent<Player>();
             plBase.state = PlayerState.SpecialSkill;
-            int amount = 0;
+            int amount = 200;
             if (plBase.CheckConditionStamina(amount))
             {
                 isProcess = true;
                 StartCoroutine(MoveAndAttackSinglePlayer(players[currentPlayerIndex]));
                 plBase.UseSkill(amount);
+            }
+            else
+            {
+                FindAnyObjectByType<FadeOutText>().ShowMessage("Not enough stamina to use the skill (200).");
             }
         }
     }
@@ -390,6 +407,22 @@ public class GameManager : MonoBehaviour
                         originalDefense[i] = pBase.Defense;
                     }
                     pBase.state = PlayerState.None;
+                }
+                if(pBase.Ability == PlayerAbilities.ContinousRecovery)
+                {
+                    if(pBase.CurrentHealth <= (int)(pBase.MaxHealth * 0.15f))
+                    {
+                        activeRecovery = true;
+                    }
+                    if (activeRecovery)
+                    {
+                        pBase.CurrentHealth += (int)(pBase.MaxHealth * 0.1f);
+                        pBase.CurrentStamina += (int)(pBase.MaxStamina * 0.1f);
+                        if (pBase.CurrentHealth > pBase.MaxHealth)
+                        {
+                            pBase.CurrentHealth = pBase.MaxHealth;
+                        }
+                    }
                 }
             }
         }
@@ -540,8 +573,7 @@ public class GameManager : MonoBehaviour
         }
         else if(x == 2)
         {
-            int quantityEnemy = Random.Range(1, 3);
-            for (int i = 0; i < quantityEnemy; i++)
+            for (int i = 0; i < 2; i++)
             {
                 int tmp = Random.Range(0, 3);
                 enemyPrefab.Add(enemyPreTMP[tmp]);
@@ -755,17 +787,23 @@ public class GameManager : MonoBehaviour
     public bool CheckWin()
     {
         if (enemies.Count == 0) return true;
-        else return false;
+        return false;
     }
     public int ExpReward(int playerLevel)
     {
-        int baseExp = ExpToLevelUp(playerLevel) / 8;
-
-        // EXP ngẫu nhiên trong khoảng 80% - 120% của baseExp
-        int minExp = (int)(baseExp * 0.8f);
-        int maxExp = (int)(baseExp * 1.2f);
-
-        return Random.Range(minExp, maxExp);
+        int baseExp = ExpToLevelUp(playerLevel) / 10;
+        // EXP ngẫu nhiên trong khoảng 70% - 130% của baseExp
+        int minExp = (int)(baseExp * 0.7f);
+        int maxExp = (int)(baseExp * 1.3f);
+        int expBonusBoss = 0;
+        if(selectedLvl == 4 || selectedLvl == 6|| selectedLvl==8 || selectedLvl ==11|| selectedLvl==12|| selectedLvl == 13){
+            expBonusBoss = Random.Range(baseExp / 4, baseExp/2);
+        }
+        else if(selectedLvl >= playerLevel)
+        {
+            expBonusBoss = Random.Range(baseExp/10, baseExp/5);
+        }
+        return Random.Range(minExp, maxExp) + expBonusBoss;
     }
     public int ExpToLevelUp(int playerLevel)
     {
@@ -775,7 +813,7 @@ public class GameManager : MonoBehaviour
     //Save data
     public void Save()
     {
-        string filePath = Application.persistentDataPath + "/gameData.json";
+        string filePath = Path.Combine(Application.persistentDataPath, "gameData.json");
         string jsonWrite;
         GameData gameData;
         if (!File.Exists(filePath))
@@ -793,8 +831,9 @@ public class GameManager : MonoBehaviour
         {
             gameData.currentMap = selectedLvl;
         }
-        int expUp = ExpToLevelUp(gameData.level);
-        int expRewadStage = ExpReward(gameData.level);
+        int playerLevel = gameData.level;
+        int expUp = ExpToLevelUp(playerLevel);
+        int expRewadStage = ExpReward(playerLevel);
         gameData.experiece += expRewadStage;
 
         if (gameData.experiece >= expUp)

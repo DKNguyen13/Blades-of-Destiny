@@ -54,6 +54,7 @@ public class AnotherButton : MonoBehaviour
     public void ShowWinPanel()
     {
         gameWinPanel.SetActive(true);
+        FindAnyObjectByType<Sound>().SoundWin();
         StartCoroutine(FadeIn(gameWinPanel, 1.5f)); // Chạy hiệu ứng trong 1.5 giây
         Time.timeScale = 0f;
     }

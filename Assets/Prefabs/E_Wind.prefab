@@ -249,6 +249,8 @@ MonoBehaviour:
   defense: 0
   level: 1
   type: 5
+  ability: 0
+  status: 0
   state: 0
 --- !u!70 &4344442601906672926
 CapsuleCollider2D:
